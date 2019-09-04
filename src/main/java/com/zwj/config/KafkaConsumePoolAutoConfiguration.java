@@ -20,11 +20,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @EnableConfigurationProperties(KafkaConsumePoolProperties.class)
 @ConditionalOnProperty(prefix = "kafka.consume.pool", value = "enabled")
-public class KafkaConsumePoolConfig {
+public class KafkaConsumePoolAutoConfiguration {
 
     private  KafkaConsumePoolProperties kafkaConsumePoolProperties;
 
-    public KafkaConsumePoolConfig(KafkaConsumePoolProperties kafkaConsumePoolProperties) {
+    public KafkaConsumePoolAutoConfiguration(KafkaConsumePoolProperties kafkaConsumePoolProperties) {
         this.kafkaConsumePoolProperties = kafkaConsumePoolProperties;
     }
 

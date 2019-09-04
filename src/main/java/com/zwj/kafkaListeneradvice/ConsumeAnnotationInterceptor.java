@@ -28,9 +28,12 @@ public class ConsumeAnnotationInterceptor implements MethodInterceptor, Ordered 
     }
 
     @Override
-    public Object invoke(MethodInvocation invocation) {
+    public Object invoke(MethodInvocation invocation) throws Throwable {
 
         KafkaListener kafkaListener = invocation.getMethod().getAnnotation(KafkaListener.class);
+        if(kafkaListener==null){
+            return invocation.proceed();
+        }
         Object[] content = invocation.getArguments();
         String defaultMetricName = environment.getProperty("spring.kafka.consumer.group-id", "defaultMetricName");
         String groupId = kafkaListener.groupId();
