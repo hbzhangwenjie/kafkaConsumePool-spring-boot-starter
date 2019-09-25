@@ -31,7 +31,8 @@ public class ConsumeAnnotationInterceptor implements MethodInterceptor, Ordered 
     public Object invoke(MethodInvocation invocation) throws Throwable {
 
         KafkaListener kafkaListener = invocation.getMethod().getAnnotation(KafkaListener.class);
-        if(kafkaListener==null){
+        if (kafkaListener == null) {
+            //不是被kafkaListener标示的方法不放进线程池
             return invocation.proceed();
         }
         Object[] content = invocation.getArguments();
@@ -39,13 +40,7 @@ public class ConsumeAnnotationInterceptor implements MethodInterceptor, Ordered 
         String groupId = kafkaListener.groupId();
         handleMsg((String) content[0],
                 StringUtils.isEmpty(groupId) ? defaultMetricName : environment.getProperty(groupId.substring("${".length(), groupId.length() - 1)),
-                () -> {
-                    try {
-                        invocation.proceed();
-                    } catch (Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
+                () -> invocation.proceed());
         return null;
     }
 
@@ -54,15 +49,20 @@ public class ConsumeAnnotationInterceptor implements MethodInterceptor, Ordered 
         return LOWEST_PRECEDENCE;
     }
 
-    private void handleMsg(String content, String groupId, Runnable runnable) {
+    private void handleMsg(String content, String groupId, ExceptionalFunction runnable) {
         executor.execute(() -> {
             try {
-                runnable.run();
-            } catch (Exception e) {
+                runnable.apply();
+            } catch (Throwable e) {
                 log.warn("kafka处理消息失败，message:{},groupid:{},exception:{}", content, groupId, e);
             } finally {
             }
         });
+    }
+
+    public interface ExceptionalFunction {
+
+        void apply() throws Throwable;
     }
 
 }
